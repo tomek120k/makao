@@ -8,6 +8,7 @@ use Makao\Collection\CardCollection;
 
 class Player
 {
+	const MAKAO = "Makao";
 	private $name = '';
 	private $cardCollection = null;
 
@@ -22,14 +23,20 @@ class Player
 		return $this->cardCollection;
 	}
 
-	public function takeCard (CardCollection $cardCollection) : self
+	public function takeCards (CardCollection $cardCollection, int $count = 1) : self
 	{
-		$this->cardCollection->add($cardCollection->pickCard());
+		for ($i = 0; $i < $count; $i++)
+			$this->cardCollection->add($cardCollection->pickCard());
 		return $this;
 	}
 
 	public function __toString () : string
 	{
 		return $this->name;
+	}
+
+	public function sayMakao () : string
+	{
+		return self::MAKAO;
 	}
 }
