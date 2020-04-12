@@ -35,6 +35,15 @@ class CardCollection implements Countable, Iterator, ArrayAccess
 		return $this;
 	}
 
+	public function addCollection (CardCollection $cardCollection) : self
+	{
+		foreach (clone $cardCollection as $card)
+		{
+			$this->add($card);
+		}
+		return $this;
+	}
+
 	public function pickCard (): Card
 	{
 		if (empty($this->cards))

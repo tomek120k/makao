@@ -4,6 +4,7 @@
 namespace Makao\Service;
 
 
+use Composer\Command\AboutCommand;
 use Makao\Table;
 
 class GameService
@@ -14,14 +15,20 @@ class GameService
 	 * @var bool
 	 */
 	private bool $isStarted = false;
+	/**
+	 * @var CardService
+	 */
+	private CardService $cardService;
 
 	/**
 	 * GameService constructor.
 	 * @param Table|null $table
+	 * @param CardService $cardService
 	 */
-	public function __construct (Table $table = null)
+	public function __construct (Table $table, CardService $cardService)
 	{
-		$this->table = $table ?? new Table();
+		$this->table = $table;
+		$this->cardService = $cardService;
 	}
 
 	public function isStarted () : bool
@@ -44,5 +51,12 @@ class GameService
 	public function startGame() : void
 	{
 		$this->isStarted = true;
+	}
+
+	public function prepareCardDeck ()
+	{
+		$cardCollection = $this->cardService->createDeck();
+		$cardDeck = $this->cardService->shuffle($cardCollection);
+		return $this->table->addCardCollectionToDeck($cardDeck);
 	}
 }

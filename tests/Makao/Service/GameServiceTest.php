@@ -3,8 +3,13 @@
 namespace Tests\Makao\Service;
 
 
+use Makao\Card;
+use Makao\Collection\CardCollection;
 use Makao\Player;
+use Makao\Service\CardService;
 use Makao\Service\GameService;
+use Makao\Table;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 
@@ -14,6 +19,7 @@ class GameServiceTest extends TestCase
 	 * @var GameService
 	 */
 	private GameService $gameServiceUnderTest;
+	private $mockObject;
 
 	public function testShouldReturnFalseWhenGameIsNotStarted() : void
 	{
@@ -59,7 +65,54 @@ class GameServiceTest extends TestCase
 
 	protected function setUp (): void
 	{
-		$this->gameServiceUnderTest = new GameService();
+		$this->cardServiceMock = $this->createMock(CardService::class);
+		$this->gameServiceUnderTest = new GameService(new Table(), $this->cardServiceMock);
+	}
+
+	/**
+	 * @throws \ReflectionException
+	 */
+	public function testShouldCreateShuffledCardDesk()
+	{
+		// Given
+		$cardCollection = new CardCollection([
+			new Card(Card::COLOR_CLUB, Card::VALUE_ACE),
+			new Card(Card::COLOR_DIAMOND, Card::VALUE_FOUR)
+		]);
+
+		$shuffledCardCollection = new CardCollection([
+			new Card(Card::COLOR_DIAMOND, Card::VALUE_FOUR),
+			new Card(Card::COLOR_CLUB, Card::VALUE_ACE)
+		]);
+		/**
+		 * @var MockObject | Table $tableStub
+		 */
+		$tableMock = $this->createMock(Table::class);
+
+		/**
+		 * @var MockObject | CardService $cardServiceMock
+		 */
+
+		$this->cardServiceMock->expects($this->once())
+			->method('createDeck')
+			->willReturn($cardCollection);
+		$this->cardServiceMock->expects(($this->once()))
+			->method('shuffle')
+			->with($cardCollection)
+			->willReturn($shuffledCardCollection);
+
+
+
+		// When
+		/**
+		 * @var Table $table
+		 */
+		$table = $this->gameServiceUnderTest->prepareCardDeck();
+		// Then
+		$this->assertCount(2, $table->getCardDeck());
+		$this->assertCount(0, $table->getPlayedCards());
+		$this->assertEquals($shuffledCardCollection, $table->getCardDeck());
+
 	}
 
 }
