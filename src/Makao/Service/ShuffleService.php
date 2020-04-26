@@ -7,13 +7,18 @@ namespace Makao\Service;
 /**
  * Class ShuffleService
  * @package Makao\Service
- * @CodeCoveregeIgnore
+ * @CodeCoverageIgnore
  */
 class ShuffleService
 {
-	public function shuffle (array $data)
-	{
-		shuffle($data);
-		return $data;
-	}
+    /**
+     * @param array $data
+     * @return array
+     * @CodeCoverageIgnore
+     */
+    public function shuffle(array $data): array
+    {
+        shuffle($data);
+        return $data;
+    }
 }
