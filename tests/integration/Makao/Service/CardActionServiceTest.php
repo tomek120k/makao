@@ -29,6 +29,72 @@ class CardActionServiceTest extends TestCase
     private CardActionService $serviceUnderTest;
     private CardCollection $deck;
 
+    public function testShouldGiveNextPlayerThreeCardsWhenCardThreeWasDropped(): void
+    {
+        $card = new Card(Card::COLOR_SPADE, Card::VALUE_THREE);
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(3, $this->player2->getCards());
+        $this->assertSame($this->player3, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldGiveThirdPlayerSixCardsWhenCardThreeWasDroppedAndSecondPlayerHasCardThreeDefend()
+    {
+        $card = new Card(Card::COLOR_SPADE, Card::VALUE_THREE);
+        $this->player2->getCards()->add(
+            new Card(Card::COLOR_HEART, Card::VALUE_THREE)
+        );
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(0, $this->player2->getCards());
+        $this->assertCount(6, $this->player3->getCards());
+        $this->assertSame($this->player1, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldGiveFirstPlayerNineCardsWhenCardThreeWasDroppedAndSecondAndThirdPlayerHasCardTwoDefend()
+    {
+        $card = new Card(Card::COLOR_SPADE, Card::VALUE_THREE);
+        $this->player2->getCards()->add(
+            new Card(Card::COLOR_HEART, Card::VALUE_THREE)
+        );
+         $this->player3->getCards()->add(
+            new Card(Card::COLOR_CLUB, Card::VALUE_THREE)
+        );
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(0, $this->player2->getCards());
+        $this->assertCount(0, $this->player3->getCards());
+        $this->assertCount(9, $this->player1->getCards());
+        $this->assertSame($this->player2, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldGiveSecendPlayerTwelveCardsWhenCardThreeWasDroppedAndSecondAndThirdPlayerHasCardTwoDefend()
+    {
+        $card = new Card(Card::COLOR_SPADE, Card::VALUE_THREE);
+        $this->player1->getCards()->add(
+            new Card(Card::COLOR_DIAMOND, Card::VALUE_THREE)
+        );
+
+        $this->player2->getCards()->add(
+            new Card(Card::COLOR_HEART, Card::VALUE_THREE)
+        );
+         $this->player3->getCards()->add(
+            new Card(Card::COLOR_CLUB, Card::VALUE_THREE)
+        );
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(12, $this->player2->getCards());
+        $this->assertCount(0, $this->player3->getCards());
+        $this->assertCount(0, $this->player1->getCards());
+        $this->assertSame($this->player3, $this->table->getCurrentPlayer());
+    }
+
+    //-------
+
     public function testShouldGiveNextPlayerTwoCardsWhenCardTwoWasDropped(): void
     {
         $card = new Card(Card::COLOR_SPADE, Card::VALUE_TWO);

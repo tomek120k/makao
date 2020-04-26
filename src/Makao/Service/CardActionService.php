@@ -28,6 +28,8 @@ class CardActionService
             case Card::VALUE_TWO:
                 $this->cardTwoAction();
                 break;
+            case Card::VALUE_THREE:
+                $this->cardThreeAction();
             default:
                 break;
         }
@@ -42,6 +44,20 @@ class CardActionService
             $this->table->getPlayedCards()->add($card);
             $this->table->finishRound();
             $this->cardTwoAction();
+        } catch (CardNotFoundException $e) {
+            $this->playerTakeCards($this->cardToGet);
+        }
+    }
+
+    private function cardThreeAction(): void
+    {
+        $this->cardToGet += 3;
+        $player = $this->table->getCurrentPlayer();
+        try {
+            $card = $player->pickCardByValue(Card::VALUE_THREE);
+            $this->table->getPlayedCards()->add($card);
+            $this->table->finishRound();
+            $this->cardThreeAction();
         } catch (CardNotFoundException $e) {
             $this->playerTakeCards($this->cardToGet);
         }
