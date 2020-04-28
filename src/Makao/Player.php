@@ -20,16 +20,6 @@ class Player
         $this->cardCollection = $cardCollection ?? new CardCollection();
     }
 
-    public function pickCard($index = 0): Card
-    {
-        return $this->getCards()->pickCard($index);
-    }
-
-    public function getCards(): CardCollection
-    {
-        return $this->cardCollection;
-    }
-
     public function takeCards(CardCollection $cardCollection, int $count = 1): self
     {
         for ($i = 0; $i < $count; $i++) {
@@ -58,23 +48,48 @@ class Player
         throw new CardNotFoundException('Player has not card with value 2');
     }
 
-    public function getRoundToSkip () : int
+    public function pickCardsByValue(?string $cardValue): CardCollection
     {
-        return $this->roundToSkip;
+        $cardCollection = new CardCollection();
+        try {
+            while ($card = $this->pickCardByValue($cardValue)) {
+                $cardCollection->add($card);
+            }
+        } catch (CardNotFoundException $e) {
+            if (0 === $cardCollection->count()) {
+                throw $e;
+            }
+        }
+        return $cardCollection;
     }
 
-    public function canPlayRound () : bool
+    public function pickCard($index = 0): Card
+    {
+        return $this->getCards()->pickCard($index);
+    }
+
+    public function getCards(): CardCollection
+    {
+        return $this->cardCollection;
+    }
+
+    public function canPlayRound(): bool
     {
         return $this->getRoundToSkip() === 0;
     }
 
-    public function addRoundToSkip (int $round = 1) : self
+    public function getRoundToSkip(): int
+    {
+        return $this->roundToSkip;
+    }
+
+    public function addRoundToSkip(int $round = 1): self
     {
         $this->roundToSkip += $round;
         return $this;
     }
 
-    public function skipRound () :  self
+    public function skipRound(): self
     {
         --$this->roundToSkip;
         return $this;

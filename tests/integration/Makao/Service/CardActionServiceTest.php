@@ -240,4 +240,59 @@ class CardActionServiceTest extends TestCase
         $this->assertTrue( $this->player2->canPlayRound());
         $this->assertTrue( $this->player3->canPlayRound());
     }
+
+    public function testShouldRequestCardByValueWhenCardJackWasDroppedAndTakeCardForEachPlayerWhenTheyNotHaveRequstedCard(): void
+    {
+        // Given
+        $requestedValue = Card::VALUE_SEVEN;
+        $card = new Card(Card::COLOR_SPADE, Card::VALUE_JACK);
+        $requestedCard = new Card(Card::COLOR_SPADE, Card::VALUE_SEVEN);
+        $this->player1->getCards()->add($requestedCard);
+        // When
+        $this->serviceUnderTest->afterCard($card, $requestedValue);
+        // Then
+        $this->assertCount(0, $this->player1->getCards());
+        $this->assertCount(1, $this->player2->getCards());
+        $this->assertCount(1, $this->player3->getCards());
+        $this->assertSame($requestedCard, $this->table->getPlayedCards()->getLastCard());
+        $this->assertSame($this->player2, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldRequestCardByValueWhenCardJackWasDroppedAndPickCardsForEachPlayerWhenTheyHaveRequstedCard(): void
+    {
+        // Given
+        $requestedValue = Card::VALUE_SEVEN;
+        $card = new Card(Card::COLOR_SPADE, Card::VALUE_JACK);
+
+        $this->player1->getCards()->add(new Card(Card::COLOR_SPADE, Card::VALUE_SEVEN));
+        $this->player2->getCards()->add(new Card(Card::COLOR_HEART, Card::VALUE_SEVEN));
+        $this->player3->getCards()->add(new Card(Card::COLOR_CLUB, Card::VALUE_SEVEN));
+        // When
+        $this->serviceUnderTest->afterCard($card, $requestedValue);
+        // Then
+        $this->assertCount(0, $this->player1->getCards());
+        $this->assertCount(0, $this->player2->getCards());
+        $this->assertCount(0, $this->player3->getCards());
+        $this->assertSame($this->player2, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldAllowDropManyRequestedCardsByValueWhenPlayerDropJackCard(): void
+    {
+        // Given
+        $requestedValue = Card::VALUE_SEVEN;
+        $card = new Card(Card::COLOR_SPADE, Card::VALUE_JACK);
+        $requestedCard = new Card(Card::COLOR_CLUB, Card::VALUE_SEVEN);
+        $this->player1->getCards()->add(new Card(Card::COLOR_SPADE, Card::VALUE_SEVEN));
+        $this->player1->getCards()->add(new Card(Card::COLOR_HEART, Card::VALUE_SEVEN));
+        $this->player1->getCards()->add($requestedCard);
+        // When
+        $this->serviceUnderTest->afterCard($card, $requestedValue);
+        // Then
+
+        $this->assertCount(0, $this->player1->getCards());
+        $this->assertCount(1, $this->player2->getCards());
+        $this->assertCount(1, $this->player3->getCards());
+        $this->assertSame($requestedCard, $this->table->getPlayedCards()->getLastCard());
+        $this->assertSame($this->player2, $this->table->getCurrentPlayer());
+    }
 }
