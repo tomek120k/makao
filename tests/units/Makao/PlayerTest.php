@@ -1,6 +1,4 @@
 <?php
-
-
 namespace Tests\Makao;
 
 use Makao\Card;
@@ -221,4 +219,29 @@ class PlayerTest extends TestCase
         // Then
         $this->assertEquals($cardCollection, $actual);
     }
+
+    public function testShouldThrowCardNotFoundExceptionWhenPlayTryPickCardByValueAndColorAndHasNotCorrectCardInHand() : void
+    {
+        // Expect
+        $this->expectException(CardNotFoundException::class);
+        $this->expectExceptionMessage('Player has not card with value king');
+        // Given
+        $player = new Player('Andy');
+        // When
+        $player->pickCardByValueAndColor(Card::VALUE_KING, Card::COLOR_HEART);
+        // Then
+    }
+
+    public function testShouldReturnPickCardByValueAndColorWhenPlayerHasCorrectCard() : void
+    {
+        // Given
+        $card = new Card(Card::COLOR_HEART, Card::VALUE_KING);
+        $player = new Player('Andy', new CardCollection([$card]));
+        // When
+        $actual = $player->pickCardByValueAndColor(Card::VALUE_KING, Card::COLOR_HEART);
+        // Then
+        $this->assertSame($actual, $card);
+    }
+
+
 }

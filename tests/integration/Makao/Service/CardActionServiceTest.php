@@ -10,6 +10,8 @@ use Makao\Service\CardActionService;
 use Makao\Table;
 use PHPUnit\Framework\TestCase;
 
+use function var_dump;
+
 class CardActionServiceTest extends TestCase
 {
     /**
@@ -288,11 +290,80 @@ class CardActionServiceTest extends TestCase
         // When
         $this->serviceUnderTest->afterCard($card, $requestedValue);
         // Then
-
         $this->assertCount(0, $this->player1->getCards());
         $this->assertCount(1, $this->player2->getCards());
         $this->assertCount(1, $this->player3->getCards());
         $this->assertSame($requestedCard, $this->table->getPlayedCards()->getLastCard());
+        $this->assertSame($this->player2, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldGiveNextPlayerFiveCardsWhenCardKingHeartWasDropped(): void
+    {
+        $card = new Card(Card::COLOR_HEART, Card::VALUE_KING);
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(5, $this->player2->getCards());
+        $this->assertSame($this->player3, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldGivePreviousPlayerFiveCardsWhenCardKingPicWasDropped(): void
+    {
+        $card = new Card(Card::COLOR_SPADE, Card::VALUE_KING);
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(5, $this->player3->getCards());
+        $this->assertSame($this->player1, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldGiveCurrentPlayerTenCardsWhenCardKingHeartWasDroppedAndNextPlayerHasKingSpadeToDefence(): void
+    {
+        $card = new Card(Card::COLOR_HEART, Card::VALUE_KING);
+        $this->player2->getCards()->add(new Card(Card::COLOR_SPADE, Card::VALUE_KING));
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(10, $this->player1->getCards());
+        $this->assertSame($this->player2, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldGiveCurrentPlayerTenCardsWhenCardKingSpadeWasDroppedAndPreviousPlayerHasKingHearToDefence(): void
+    {
+
+        $card = new Card(Card::COLOR_SPADE, Card::VALUE_KING);
+
+        $this->player3->getCards()->add(new Card(Card::COLOR_HEART, Card::VALUE_KING));
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(10, $this->player1->getCards());
+        $this->assertSame($this->player2, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldNotRunAnyActionForOtherKings(): void
+    {
+        $card = new Card(Card::COLOR_CLUB, Card::VALUE_KING);
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(0, $this->player1->getCards());
+        $this->assertCount(0, $this->player2->getCards());
+        $this->assertCount(0, $this->player3->getCards());
+
+        $this->assertSame($this->player2, $this->table->getCurrentPlayer());
+    }
+
+    public function testShouldNotRunAnyActionForAnyNonActionCard(): void
+    {
+        $card = new Card(Card::COLOR_CLUB, Card::VALUE_FIVE);
+        // When
+        $this->serviceUnderTest->afterCard($card);
+        // Then
+        $this->assertCount(0, $this->player1->getCards());
+        $this->assertCount(0, $this->player2->getCards());
+        $this->assertCount(0, $this->player3->getCards());
+
         $this->assertSame($this->player2, $this->table->getCurrentPlayer());
     }
 }

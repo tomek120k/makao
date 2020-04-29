@@ -37,6 +37,10 @@ class CardActionService
                 break;
             case Card::VALUE_JACK:
                 $this->requestingCardValue($request);
+                break;
+            case Card::VALUE_KING:
+                $this->afterKing($card->getColor());
+                break;
             default:
                 break;
         }
@@ -109,6 +113,49 @@ class CardActionService
             } finally {
                 $this->table->finishRound();
             }
+        }
+    }
+
+    private function afterKing(string $color) : void
+    {
+        $this->actionCount += 5;
+        switch ($color) {
+            case Card::COLOR_HEART:
+                $this->afterKingHeart();
+                break;
+                case Card::COLOR_SPADE:
+                $this->afterKingSpade();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private function afterKingHeart() : void
+    {
+        $player = $this->table->getCurrentPlayer();
+        try {
+            $card = $player->pickCardByValueAndColor(Card::VALUE_KING, Card::COLOR_SPADE);
+            $this->table->getPlayedCards()->add($card);
+            $this->table->finishRound();
+            $this->afterKing(Card::COLOR_SPADE);
+        } catch (CardNotFoundException $e) {
+            $this->playerTakeCards($this->actionCount);
+
+        }
+    }
+
+    private function afterKingSpade(): void
+    {
+        $this->table->backRound();
+        $player = $this->table->getPreviousPlayer();
+        try {
+            $card = $player->pickCardByValueAndColor(Card::VALUE_KING, Card::COLOR_HEART);
+            $this->table->getPlayedCards()->add($card);
+            $this->afterKing(Card::COLOR_HEART);
+        } catch (CardNotFoundException $e) {
+            $this->table->backRound();
+            $this->playerTakeCards($this->actionCount);
         }
     }
 }
