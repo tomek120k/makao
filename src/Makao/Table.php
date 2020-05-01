@@ -5,6 +5,7 @@ namespace Makao;
 
 
 use Makao\Collection\CardCollection;
+use Makao\Collection\CardNotFoundException;
 use Makao\Exception\TooManyPlayersAtTheTableException;
 
 class Table
@@ -15,11 +16,16 @@ class Table
     private $cardDeck;
     private $playedCards = null;
     private $currentIndexPlayer = 0;
+    private string $playedCardColor = '';
 
     public function __construct(CardCollection $cardDeck = null, CardCollection $playedCards = null)
     {
         $this->cardDeck = $cardDeck ?? new CardCollection();
-        $this->playedCards = new CardCollection();
+        $this->playedCards = $playedCards ?? new CardCollection();
+
+        if (!is_null($playedCards)) {
+            $this->changePlayedCardColor($this->playedCards->getLastCard()->getColor());
+        }
     }
 
     public function addPlayer(Player $player): void
@@ -78,5 +84,37 @@ class Table
         if (--$this->currentIndexPlayer < 0) {
             $this->currentIndexPlayer = $this->countPlayers() - 1;
         }
+    }
+
+    public function getPlayedCardColor() : string
+    {
+        if ($this->playedCardColor) {
+
+            return $this->playedCardColor;
+        }
+
+
+        throw new CardNotFoundException('No played card on the table yet!');
+    }
+
+    public function addPlayedCard(Card $card) : self
+    {
+        $this->playedCards->add($card);
+        $this->changePlayedCardColor($card->getColor());
+        return $this;
+    }
+
+    public function changePlayedCardColor($color) : self
+    {
+        $this->playedCardColor = $color;
+        return $this;
+    }
+
+    public function addPlayedCards(CardCollection $cards) : self
+    {
+        foreach ($cards as $card) {
+            $this->addPlayedCard($card);
+        }
+        return $this;
     }
 }
