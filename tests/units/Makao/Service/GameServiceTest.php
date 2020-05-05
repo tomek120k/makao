@@ -5,6 +5,7 @@ namespace Tests\Makao\Service;
 
 use Makao\Card;
 use Makao\Collection\CardCollection;
+use Makao\Exception\GameException;
 use Makao\Player;
 use Makao\Service\CardService;
 use Makao\Service\GameService;
@@ -57,6 +58,13 @@ class GameServiceTest extends TestCase
 
     public function testShouldReturnTrueWhenGameIsStarted(): void
     {
+        $this->gameServiceUnderTest->getTable()->addCardCollectionToDeck(new CardCollection([
+            new Card(Card::COLOR_CLUB, Card::VALUE_ACE)
+        ]));
+        $this->gameServiceUnderTest->addPlayers([
+            new Player('Andy'),
+            new Player('Max')
+        ]);
         // When
         $this->gameServiceUnderTest->startGame();
         // Then
@@ -109,6 +117,27 @@ class GameServiceTest extends TestCase
         $this->assertCount(2, $table->getCardDeck());
         $this->assertCount(0, $table->getPlayedCards());
         $this->assertEquals($shuffledCardCollection, $table->getCardDeck());
+    }
+
+    public function testShouldThrowGameExceptionWhenStartGameWithoutCardDeck(): void
+    {
+        // Expect
+        $this->expectException(GameException::class);
+        $this->expectExceptionMessage('Prepare card deck before game start');
+        // Given
+        $this->gameServiceUnderTest->startGame();
+    }
+
+    public function testShouldThrowGameExceptionWhenStartGameWithoutMinimalPlayers(): void
+    {
+        // Expect
+        $this->expectException(GameException::class);
+        $this->expectExceptionMessage('You need minimum 2 players to start game');
+        // Given
+        $this->gameServiceUnderTest->getTable()->addCardCollectionToDeck(new CardCollection([
+            new Card(Card::COLOR_CLUB, Card::VALUE_ACE)
+        ]));
+        $this->gameServiceUnderTest->startGame();
     }
 
     protected function setUp(): void

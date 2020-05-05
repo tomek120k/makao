@@ -1,6 +1,4 @@
 <?php
-
-
 namespace Makao\Service;
 
 
@@ -62,6 +60,17 @@ class CardActionService
         }
     }
 
+    /**
+     */
+    private function playerTakeCards(int $count): void
+    {
+        $player = $this->table->getCurrentPlayer();
+
+        $player
+            ->takeCards($this->table->getCardDeck(), $count);
+        $this->table->finishRound();
+    }
+
     private function cardThreeAction(): void
     {
         $this->cardToGet += 3;
@@ -76,18 +85,7 @@ class CardActionService
         }
     }
 
-    /**
-     */
-    private function playerTakeCards(int $count): void
-    {
-        $player = $this->table->getCurrentPlayer();
-
-        $player
-            ->takeCards($this->table->getCardDeck(), $count);
-        $this->table->finishRound();
-    }
-
-    public function skipRound() : void
+    public function skipRound(): void
     {
         ++$this->actionCount;
         $player = $this->table->getCurrentPlayer();
@@ -97,12 +95,12 @@ class CardActionService
             $this->table->finishRound();
             $this->skipRound();
         } catch (CardNotFoundException $e) {
-             $player->addRoundToSkip($this->actionCount - 1);
-             $this->table->finishRound();
+            $player->addRoundToSkip($this->actionCount - 1);
+            $this->table->finishRound();
         }
     }
 
-    private function requestingCardValue(?string $cardValue) : void
+    private function requestingCardValue(?string $cardValue): void
     {
         $iteration = $this->table->countPlayers();
         for ($i = 0; $i < $iteration; $i++) {
@@ -118,14 +116,14 @@ class CardActionService
         }
     }
 
-    private function afterKing(string $color) : void
+    private function afterKing(string $color): void
     {
         $this->actionCount += 5;
         switch ($color) {
             case Card::COLOR_HEART:
                 $this->afterKingHeart();
                 break;
-                case Card::COLOR_SPADE:
+            case Card::COLOR_SPADE:
                 $this->afterKingSpade();
                 break;
             default:
@@ -133,7 +131,7 @@ class CardActionService
         }
     }
 
-    private function afterKingHeart() : void
+    private function afterKingHeart(): void
     {
         $player = $this->table->getCurrentPlayer();
         try {
@@ -143,7 +141,6 @@ class CardActionService
             $this->afterKing(Card::COLOR_SPADE);
         } catch (CardNotFoundException $e) {
             $this->playerTakeCards($this->actionCount);
-
         }
     }
 
