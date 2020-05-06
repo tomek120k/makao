@@ -4,6 +4,8 @@
 namespace Makao\Service;
 
 
+use Exception;
+use Makao\Collection\CardNotFoundException;
 use Makao\Exception\GameException;
 use Makao\Table;
 
@@ -11,6 +13,7 @@ class GameService
 {
 
     const MINIMAL_PLAYERS = 2;
+    const COUNT_START_PLAYER_CARDS = 5;
     private Table $table;
     /**
      * @var bool
@@ -53,8 +56,20 @@ class GameService
     public function startGame(): void
     {
         $this->validateBeforeStartGame();
-        $this->isStarted = true;
 
+        $cardDeck = $this->table->getCardDeck();
+        try {
+            $this->isStarted = true;
+            $card = $this->cardService->pickFirstNoActionCard($cardDeck);
+
+            $this->table->addPlayedCard($card);
+
+            foreach ($this->table->getPlayers() as $player) {
+                $player->takeCards($cardDeck, self::COUNT_START_PLAYER_CARDS);
+            }
+        } catch (Exception $e) {
+            throw new GameException('The game needs help!', $e);
+        }
 
     }
 

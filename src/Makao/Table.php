@@ -117,4 +117,12 @@ class Table
         }
         return $this;
     }
+
+    /**
+     * @return Player[]
+     */
+    public function getPlayers () : array
+    {
+        return $this->players;
+    }
 }
